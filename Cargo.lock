@@ -529,6 +529,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "diesel-citext"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3edb6aeccf4ceea18d41559f6a8cd61126a7b74d3ae6a84628a85f0b99b4cde"
+dependencies = [
+ "diesel",
+ "serde",
+]
+
+[[package]]
+name = "diesel-derive-enum"
+version = "1.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70806b70be328e646f243680a3fc93b3cfdd6db373faa5110660a5dd5af243bc"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "diesel_derives"
 version = "1.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1958,6 +1980,8 @@ dependencies = [
  "chrono",
  "derive_more",
  "diesel",
+ "diesel-citext",
+ "diesel-derive-enum",
  "env_logger",
  "log",
  "serde",

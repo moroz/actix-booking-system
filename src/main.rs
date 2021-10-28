@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate diesel;
-#[macro_use]
-extern crate actix_web;
 
 use crate::db::pool;
 use actix_web::middleware::Logger;
@@ -9,6 +7,7 @@ use actix_web::{App, HttpServer};
 use std::env;
 
 mod db;
+mod schema;
 mod yoyaku_web;
 
 #[actix_web::main]
