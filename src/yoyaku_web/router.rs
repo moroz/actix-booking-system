@@ -7,5 +7,5 @@ async fn hello() -> impl Responder {
 }
 
 pub fn routes() -> Scope {
-    web::scope("/").route("/hello", get().to(hello))
+    web::scope("").route("/", get().to(hello))
 }
