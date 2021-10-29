@@ -27,10 +27,14 @@ async fn main() -> std::io::Result<()> {
             .data(pool.clone())
             .data(schema.clone())
             .wrap(Logger::default())
+            .service(
+                web::resource("/graphql")
+                    .route(web::post().to(api_schema::handle_request))
+                    .route(web::get().to(api_schema::graphiql)),
+            )
             .service(yoyaku_web::router::routes())
-            .service(web::resource("/graphql").route(web::get().to(api_schema::handle_request)))
     })
-    .bind("0.0.0.0:4000")?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }

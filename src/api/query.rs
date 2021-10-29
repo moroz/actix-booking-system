@@ -15,7 +15,7 @@ impl QueryRoot {
         "1.0"
     }
 
-    pub async fn user(db: &Context, id: ID) -> FieldResult<User> {
+    pub fn user(db: &Context, id: ID) -> FieldResult<User> {
         let id = parse_id(id);
         let user = User::find(&db.dbpool, id)?;
         Ok(user)

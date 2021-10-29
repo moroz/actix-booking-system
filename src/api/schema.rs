@@ -4,6 +4,7 @@ use crate::db::pool::DbPool;
 use actix_web::web;
 use actix_web::HttpResponse;
 use actix_web::Result;
+use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
 use juniper::{EmptyMutation, EmptySubscription, RootNode};
 use std::sync::Arc;
@@ -30,4 +31,11 @@ pub async fn handle_request(
     Ok(HttpResponse::Ok()
         .content_type("application/json")
         .body(res))
+}
+
+pub async fn graphiql() -> HttpResponse {
+    let html = graphiql_source("http://localhost:8080/graphql", None);
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(html)
 }
