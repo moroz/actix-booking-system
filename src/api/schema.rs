@@ -1,18 +1,19 @@
 use super::context::Context;
+use super::MutationRoot;
 use super::QueryRoot;
 use crate::db::pool::DbPool;
 use actix_web::web;
 use actix_web::HttpResponse;
 use actix_web::Result;
-use juniper::http::graphiql::graphiql_source;
+use juniper::http::playground::playground_source;
 use juniper::http::GraphQLRequest;
-use juniper::{EmptyMutation, EmptySubscription, RootNode};
+use juniper::{EmptySubscription, RootNode};
 use std::sync::Arc;
 
-pub type Schema = RootNode<'static, QueryRoot, EmptyMutation<Context>, EmptySubscription<Context>>;
+pub type Schema = RootNode<'static, QueryRoot, MutationRoot, EmptySubscription<Context>>;
 
 pub fn create_schema() -> Schema {
-    Schema::new(QueryRoot {}, EmptyMutation::new(), EmptySubscription::new())
+    Schema::new(QueryRoot {}, MutationRoot {}, EmptySubscription::new())
 }
 
 pub async fn handle_request(
@@ -34,7 +35,7 @@ pub async fn handle_request(
 }
 
 pub async fn graphiql() -> HttpResponse {
-    let html = graphiql_source("http://localhost:8080/graphql", None);
+    let html = playground_source("http://localhost:8080/graphql", None);
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(html)

@@ -15,7 +15,7 @@ mod yoyaku_web;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env::set_var("RUST_LOG", "actix_web=debug");
+    env::set_var("RUST_LOG", "actix_web=info");
 
     env_logger::init();
     let pool = pool::init_pool();

@@ -2,6 +2,7 @@ use crate::db::Pool;
 use crate::db::UsersRole;
 use crate::schema::users as users_table;
 use crate::schema::users::dsl::*;
+use diesel::dsl::insert_into;
 use diesel::prelude::*;
 use diesel_citext::types::CiString;
 use juniper::{GraphQLInputObject, GraphQLObject};
@@ -54,5 +55,11 @@ impl User {
     pub fn all(pool: &Pool) -> DbQueryResult<Vec<User>> {
         let conn = pool.get().unwrap();
         users.load::<User>(&conn)
+    }
+
+    pub fn create(pool: &Pool, params: &NewUser) -> DbQueryResult<User> {
+        let conn = pool.get().unwrap();
+        let res = insert_into(users).values(params).get_result(&conn)?;
+        Ok(res)
     }
 }
