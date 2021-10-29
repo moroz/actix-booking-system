@@ -1,7 +1,6 @@
 use super::Context;
 use crate::db::models::user::{NewUser, User, UserParams};
 use juniper::graphql_object;
-use juniper::FieldResult;
 use juniper::GraphQLObject;
 use serde::Serialize;
 
