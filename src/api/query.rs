@@ -1,20 +1,24 @@
 use crate::db::{models::user::User, pool::DbContext};
-use juniper::{graphql_object, FieldResult};
+use juniper::{graphql_object, EmptyMutation, EmptySubscription, FieldResult, RootNode, ID};
 
-pub struct Context {
-    pub db: DbContext,
+pub struct QueryRoot;
+
+pub fn parse_id(id: ID) -> i32 {
+    let str = id.to_string();
+    str.parse().unwrap()
 }
 
-pub struct Query;
-
-#[graphql_object(context = Context)]
-impl Query {
+#[graphql_object(context = DbContext)]
+impl QueryRoot {
     pub fn apiVersion() -> &'static str {
         "1.0"
     }
 
-    pub async fn user(context: &Context) -> FieldResult<User> {
-        let user = User::find(&context.db, 1)?;
+    pub async fn user(db: &DbContext, id: ID) -> FieldResult<User> {
+        let id = parse_id(id);
+        let user = User::find(&db, id)?;
         Ok(user)
     }
 }
+
+pub type Schema = RootNode<'static, QueryRoot, EmptyMutation, EmptySubscription>;
