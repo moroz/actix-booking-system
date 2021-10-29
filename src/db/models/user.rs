@@ -1,13 +1,26 @@
+use crate::db::DbContext;
 use crate::db::UsersRole;
-use crate::db::UtcDateTime;
+use crate::schema::users::dsl::*;
+use diesel::prelude::*;
+use juniper::GraphQLObject;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+pub type DbQueryResult<T> = Result<T, diesel::result::Error>;
+
+#[derive(Debug, Serialize, Deserialize, GraphQLObject, Queryable)]
 pub struct User {
-    id: i32,
-    first_name: String,
-    last_name: String,
-    role: UsersRole,
-    created_at: UtcDateTime,
-    updated_at: UtcDateTime,
+    pub id: i32,
+    pub email: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub role: UsersRole,
+    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: chrono::NaiveDateTime,
+}
+
+impl User {
+    pub fn find(pool: &DbContext, user_id: i32) -> DbQueryResult<User> {
+        let conn = pool.get().unwrap();
+        users.find(user_id).get_result::<User>(&conn)
+    }
 }

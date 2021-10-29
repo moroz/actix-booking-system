@@ -6,6 +6,7 @@ use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 use std::env;
 
+mod api;
 mod db;
 mod schema;
 mod yoyaku_web;

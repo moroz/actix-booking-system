@@ -18,3 +18,5 @@ log = "0.4.0"
 env_logger = "0.8.4"
 diesel-derive-enum = { version = "1", features = ["postgres"] }
 diesel-citext = "0.3.0"
+juniper = "0.15"
+

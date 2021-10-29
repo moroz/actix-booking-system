@@ -1,8 +1,10 @@
+use actix_web::web;
 use diesel::prelude::*;
 use diesel::r2d2::{self, ConnectionManager};
 use std::env;
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
+pub type DbContext = web::Data<Pool>;
 
 pub fn init_pool() -> Pool {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL not set");
