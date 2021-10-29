@@ -15,9 +15,8 @@ impl QueryRoot {
         "1.0"
     }
 
-    pub fn user(db: &Context, id: ID) -> FieldResult<User> {
-        let id = parse_id(id);
-        let user = User::find(&db.dbpool, id)?;
+    pub fn user(db: &Context, id: ID) -> FieldResult<Option<User>> {
+        let user = User::find(&db.dbpool, parse_id(id)).ok();
         Ok(user)
     }
 }
