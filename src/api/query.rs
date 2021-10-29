@@ -15,8 +15,12 @@ impl QueryRoot {
         "1.0"
     }
 
-    pub fn user(db: &Context, id: ID) -> FieldResult<Option<User>> {
-        let user = User::find(&db.dbpool, parse_id(id)).ok();
-        Ok(user)
+    pub fn user(db: &Context, id: ID) -> Option<User> {
+        User::find(&db.dbpool, parse_id(id)).ok()
+    }
+
+    pub fn users(db: &Context) -> FieldResult<Vec<User>> {
+        let res = User::all(&db.dbpool)?;
+        Ok(res)
     }
 }
