@@ -1,4 +1,4 @@
-use crate::db::DbContext;
+use crate::db::Pool;
 use crate::db::UsersRole;
 use crate::schema::users::dsl::*;
 use diesel::prelude::*;
@@ -19,7 +19,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn find(pool: &DbContext, user_id: i32) -> DbQueryResult<User> {
+    pub fn find(pool: &Pool, user_id: i32) -> DbQueryResult<User> {
         let conn = pool.get().unwrap();
         users.find(user_id).get_result::<User>(&conn)
     }

@@ -1,5 +1,6 @@
-use crate::db::{models::user::User, pool::DbContext};
-use juniper::{graphql_object, EmptyMutation, EmptySubscription, FieldResult, RootNode, ID};
+use super::Context;
+use crate::db::models::user::User;
+use juniper::{graphql_object, FieldResult, ID};
 
 pub struct QueryRoot;
 
@@ -8,17 +9,15 @@ pub fn parse_id(id: ID) -> i32 {
     str.parse().unwrap()
 }
 
-#[graphql_object(context = DbContext)]
+#[graphql_object(context = Context)]
 impl QueryRoot {
     pub fn apiVersion() -> &'static str {
         "1.0"
     }
 
-    pub async fn user(db: &DbContext, id: ID) -> FieldResult<User> {
+    pub async fn user(db: &Context, id: ID) -> FieldResult<User> {
         let id = parse_id(id);
-        let user = User::find(&db, id)?;
+        let user = User::find(&db.dbpool, id)?;
         Ok(user)
     }
 }
-
-pub type Schema = RootNode<'static, QueryRoot, EmptyMutation, EmptySubscription>;
