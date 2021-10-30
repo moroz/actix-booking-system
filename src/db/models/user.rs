@@ -18,6 +18,9 @@ pub struct User {
     pub role: UsersRole,
     pub created_at: chrono::NaiveDateTime,
     pub updated_at: chrono::NaiveDateTime,
+
+    #[graphql(skip)]
+    pub password_hash: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, GraphQLInputObject)]
@@ -25,6 +28,8 @@ pub struct UserParams {
     pub email: String,
     pub first_name: String,
     pub last_name: String,
+    pub password: String,
+    pub password_confirmation: String,
 }
 
 #[derive(Debug, Insertable)]
@@ -33,14 +38,38 @@ pub struct NewUser {
     pub email: CiString,
     pub first_name: String,
     pub last_name: String,
+    pub password_hash: String,
 }
 
-impl From<&UserParams> for NewUser {
-    fn from(params: &UserParams) -> Self {
-        Self {
-            email: CiString::from(&params.email[..]),
-            first_name: params.first_name.clone(),
-            last_name: params.last_name.clone(),
+#[derive(Serialize, GraphQLObject, Debug)]
+pub struct ValidationError {
+    pub key: String,
+    pub msg: String,
+}
+
+pub enum ValidationResult {
+    Ok,
+    Error(Vec<ValidationError>),
+}
+
+impl UserParams {
+    pub fn validate(&self) -> ValidationResult {
+        if self.password == self.password_confirmation {
+            return ValidationResult::Ok;
+        } else {
+            return ValidationResult::Error(vec![ValidationError {
+                key: format!("password"),
+                msg: format!("Passwords don't match."),
+            }]);
+        }
+    }
+}
+
+impl From<diesel::result::Error> for ValidationError {
+    fn from(err: diesel::result::Error) -> Self {
+        ValidationError {
+            key: format!("error"),
+            msg: format!("{}", err),
         }
     }
 }
@@ -56,9 +85,22 @@ impl User {
         users.load::<User>(&conn)
     }
 
-    pub fn create(pool: &Pool, params: &NewUser) -> DbQueryResult<User> {
+    pub fn create<'a>(pool: &Pool, params: &UserParams) -> Result<User, Vec<ValidationError>> {
         let conn = pool.get().unwrap();
-        let res = insert_into(users).values(params).get_result(&conn)?;
-        Ok(res)
+        match params.validate() {
+            ValidationResult::Ok => {
+                let new_user = NewUser {
+                    password_hash: bcrypt::hash(&params.password, bcrypt::DEFAULT_COST).unwrap(),
+                    email: CiString::from(&params.email[..]),
+                    first_name: params.first_name.clone(),
+                    last_name: params.last_name.clone(),
+                };
+                match insert_into(users).values(new_user).get_result(&conn) {
+                    Ok(new_user) => Ok(new_user),
+                    Err(err) => Err(vec![err.into()]),
+                }
+            }
+            ValidationResult::Error(errors) => Err(errors),
+        }
     }
 }

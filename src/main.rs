@@ -31,6 +31,8 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 Cors::default()
                     .allowed_methods(vec!["POST", "GET"])
+                    .allow_any_method()
+                    .allow_any_header()
                     .allowed_origin_fn(|_, _| true)
                     .supports_credentials()
                     .max_age(3600),
