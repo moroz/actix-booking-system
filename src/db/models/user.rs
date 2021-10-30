@@ -1,9 +1,10 @@
 use crate::db::DbQueryResult;
 use crate::db::Pool;
 use crate::db::UsersRole;
+use crate::db::{ValidationError, ValidationResult};
 use crate::schema::users as users_table;
 use crate::schema::users::dsl::*;
-use diesel::dsl::insert_into;
+use diesel::dsl::{exists, insert_into, select};
 use diesel::prelude::*;
 use diesel_citext::types::CiString;
 use juniper::{GraphQLInputObject, GraphQLObject};
@@ -41,28 +42,23 @@ pub struct NewUser {
     pub password_hash: String,
 }
 
-#[derive(Serialize, GraphQLObject, Debug)]
-pub struct ValidationError {
-    pub key: String,
-    pub msg: String,
-}
-
-pub enum ValidationResult {
-    Ok,
-    Error(Vec<ValidationError>),
-}
-
 impl UserParams {
-    pub fn validate(&self) -> ValidationResult {
-        if self.password == self.password_confirmation {
-            return ValidationResult::Ok;
-        } else {
-            return ValidationResult::Error(vec![ValidationError {
-                key: format!("password"),
-                msg: format!("Passwords don't match."),
-            }]);
+    pub fn validate(&self, conn: &PgConnection) -> ValidationResult {
+        let mut errors = ValidationResult::new();
+        if self.password != self.password_confirmation {
+            errors.add_error("password", "Passwords don't match");
         }
+        if email_taken(conn, &self.email[..]) {
+            errors.add_error("email", "Has already been taken.");
+        }
+        errors
     }
+}
+
+fn email_taken(conn: &PgConnection, user_email: &str) -> bool {
+    select(exists(users.filter(email.eq(CiString::from(user_email)))))
+        .get_result(conn)
+        .unwrap()
 }
 
 impl From<diesel::result::Error> for ValidationError {
@@ -87,20 +83,23 @@ impl User {
 
     pub fn create<'a>(pool: &Pool, params: &UserParams) -> Result<User, Vec<ValidationError>> {
         let conn = pool.get().unwrap();
-        match params.validate() {
-            ValidationResult::Ok => {
-                let new_user = NewUser {
-                    password_hash: bcrypt::hash(&params.password, bcrypt::DEFAULT_COST).unwrap(),
-                    email: CiString::from(&params.email[..]),
-                    first_name: params.first_name.clone(),
-                    last_name: params.last_name.clone(),
-                };
-                match insert_into(users).values(new_user).get_result(&conn) {
-                    Ok(new_user) => Ok(new_user),
-                    Err(err) => Err(vec![err.into()]),
+        let mut validation_result = params.validate(&conn);
+        if validation_result.valid() {
+            let new_user = NewUser {
+                password_hash: bcrypt::hash(&params.password, bcrypt::DEFAULT_COST).unwrap(),
+                email: CiString::from(&params.email[..]),
+                first_name: params.first_name.clone(),
+                last_name: params.last_name.clone(),
+            };
+            match insert_into(users).values(new_user).get_result(&conn) {
+                Ok(new_user) => return Ok(new_user),
+                Err(err) => {
+                    validation_result.errors.push(err.into());
+                    Err(validation_result.errors)
                 }
             }
-            ValidationResult::Error(errors) => Err(errors),
+        } else {
+            Err(validation_result.errors)
         }
     }
 }

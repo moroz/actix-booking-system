@@ -1,7 +1,7 @@
 use super::Context;
 use crate::db::models::slot::{NewSlot, Slot};
-use crate::db::models::user::ValidationError;
-use crate::db::models::user::{NewUser, User, UserParams};
+use crate::db::models::user::{User, UserParams};
+use crate::db::ValidationError;
 use juniper::graphql_object;
 use juniper::GraphQLObject;
 use serde::Serialize;
