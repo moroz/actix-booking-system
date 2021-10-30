@@ -1,5 +1,5 @@
 use super::Context;
-use crate::db::models::user::User;
+use crate::db::models::{Slot, User};
 use juniper::{graphql_object, FieldResult, ID};
 
 pub struct QueryRoot;
@@ -21,6 +21,15 @@ impl QueryRoot {
 
     pub fn users(db: &Context) -> FieldResult<Vec<User>> {
         let res = User::all(&db.dbpool)?;
+        Ok(res)
+    }
+
+    pub fn slot(db: &Context, id: ID) -> Option<Slot> {
+        Slot::find(&db.dbpool, parse_id(id)).ok()
+    }
+
+    pub fn slots(db: &Context) -> FieldResult<Vec<Slot>> {
+        let res = Slot::all(&db.dbpool)?;
         Ok(res)
     }
 }

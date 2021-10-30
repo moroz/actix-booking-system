@@ -1,4 +1,5 @@
 use super::Context;
+use crate::db::models::slot::{NewSlot, Slot};
 use crate::db::models::user::{NewUser, User, UserParams};
 use juniper::graphql_object;
 use juniper::GraphQLObject;
@@ -11,6 +12,13 @@ pub struct UserMutationResult {
     success: bool,
     errors: Option<String>,
     data: Option<User>,
+}
+
+#[derive(Debug, Serialize, GraphQLObject)]
+pub struct SlotMutationResult {
+    success: bool,
+    errors: Option<String>,
+    data: Option<Slot>,
 }
 
 #[graphql_object(context = Context)]
@@ -26,6 +34,25 @@ impl MutationRoot {
             Err(any) => {
                 dbg!(&any);
                 UserMutationResult {
+                    success: false,
+                    errors: Some(any.to_string()),
+                    data: None,
+                }
+            }
+        }
+    }
+
+    pub fn createSlot(db: &Context, params: NewSlot) -> SlotMutationResult {
+        let res = Slot::create(&db.dbpool, &params);
+        match res {
+            Ok(slot) => SlotMutationResult {
+                success: true,
+                errors: None,
+                data: Some(slot),
+            },
+            Err(any) => {
+                dbg!(&any);
+                SlotMutationResult {
                     success: false,
                     errors: Some(any.to_string()),
                     data: None,

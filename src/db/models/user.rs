@@ -1,3 +1,4 @@
+use crate::db::DbQueryResult;
 use crate::db::Pool;
 use crate::db::UsersRole;
 use crate::schema::users as users_table;
@@ -7,8 +8,6 @@ use diesel::prelude::*;
 use diesel_citext::types::CiString;
 use juniper::{GraphQLInputObject, GraphQLObject};
 use serde::{Deserialize, Serialize};
-
-pub type DbQueryResult<T> = Result<T, diesel::result::Error>;
 
 #[derive(Debug, Serialize, Deserialize, GraphQLObject, Queryable)]
 pub struct User {

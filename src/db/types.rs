@@ -8,3 +8,5 @@ pub enum UsersRole {
     Customer,
     Admin,
 }
+
+pub type DbQueryResult<T> = Result<T, diesel::result::Error>;
